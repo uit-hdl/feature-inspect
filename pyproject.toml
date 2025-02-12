@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feature_inspect"
+version = "0.0.1"
+description = "A tool for exploring UMAP embeddings or other high-dimensional data. Also features a linear probing tool"
+authors = [
+    { name = "Anders Sildnes", email = "anders.sildnes@uit.no" }
+]
+license = { text = "Apache 2.0 License" }
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["umap", "explore", "linear probing"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache 2.0 License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "argcomplete",
+    "bokeh",
+    "cachetools",
+    "matplotlib",
+    "opencv-python",
+    "pandas",
+    "pillow",
+    "psutil",
+    "tensorboard",
+    "tensorboardX",
+    "tox",
+    "tqdm",
+    "umap-learn",
+    "xdg-base-dirs",
+    "zarr",
+]
+
+[project.urls]
+Homepage = "https://github.com/uit-hdl/feature-inspect"
+
+[project.optional-dependencies]
+lp_inspect = [
+    "fairlearn",
+    "monai",
+    "pynvml",
+    "pytorch-ignite",
+    "torch",
+]
+monai = [
+    "monai",
+    "pytorch-ignite",
+    "torch",
+]
+all = ["fairlearn", "monai", "pynvml", "pytorch-ignite", "torch"]
+
+[tool.setuptools.package-dir]
+umap_inspect = "umap_inspect"
+lp_inspect = "lp_inspect"
+misc = "misc"
+
+[tool.setuptools]
+packages = ["umap_inspect", "lp_inspect", "misc"]
