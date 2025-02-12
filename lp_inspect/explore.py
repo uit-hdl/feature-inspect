@@ -21,8 +21,9 @@ Train a small linear classifier on top of the embeddings to predict the labels
     :param kwargs: additional arguments: batch_size, train_ratio, val_ratio, test_ratio, epochs, lr
 """
 
+
 def lp_eval(
-    data: List[ImageSample], out_dir: str, writer: SummaryWriter = None, **kwargs
+    data: List[ImageSample], out_dir: str = "./out", writer: SummaryWriter = None, **kwargs
 ):
     batch_size = kwargs.get("batch_size", 64)
 

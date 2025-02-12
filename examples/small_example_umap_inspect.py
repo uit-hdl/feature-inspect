@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from examples.example_data import generate_random_embeddings
-from umap_inspect import explore
+from umap_inspect import make_umap
 from umap_inspect.constants import ImageLabels
 
 
@@ -35,7 +35,7 @@ def main():
         writer = init_tb_writer(temp_dir, "tensorboard_stats")
         # generate 0 or 1 labels for the images
         annotations["label"] = np.random.randint(0, 2, size=(len(names))).tolist()
-        explore.make_umap(features,
+        make_umap(features,
                           raw_values=values,
                           labels=annotations,
                           min_dists=[0.1, 0.9],

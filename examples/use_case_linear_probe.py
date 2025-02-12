@@ -27,7 +27,7 @@ from time import time
 import pandas as pd
 
 from examples.example_data import load_zarr_store
-# from lp_inspect import linear_probe
+from lp_inspect import lp_eval
 from misc.data import ImageLabels
 from misc.global_util import ensure_dir_exists, init_tb_writer
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     })
 
     ensure_dir_exists(args.out_dir)
-    linear_probe(data=data,
+    lp_eval(data=data,
                  out_dir=args.out_dir,
                  writer=writer,
                  epochs=args.epochs,

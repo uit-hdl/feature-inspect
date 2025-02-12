@@ -30,22 +30,21 @@ images = np.random.rand(100, 32, 32, 3)
 # .. use a model or clustering method to extract features from the images
 # which should be an array of shape (100, N), where N is the number of features
 features = [[...]]
-from umap_inspect import explore
+from umap_inspect import make_umap
 
-explore.make_umap(features)
+make_umap(features)
 
 # if you install linear_probe
-from lp_inspect import linear_probe
+from lp_inspect import lp_eval
 
 # labels should be a list of strings in the same order as the features
 labels = [...]
 data = [{"image": f, "label": l} for f, l in zip(features, labels)]
-linear_probe.linear_probe(data=data)
-
+lp_eval(data=data)
 ```
 Performance metrics and detailed results are written using [tensorboard](https://www.tensorflow.org/tensorboard).
 you can initialise a writer like this: `from torch.utils.tensorboard import SummaryWriter; writer = SummaryWriter(log_dir="path/to/logdir")`
-and pass it to the `make_umap` and `linear_probe` functions.
+and pass it to the `make_umap` and `lp_eval` functions.
 
 UMAPs can be rendered to html instead of the most common matplotlib solution.
 The UI looks similar to this:
