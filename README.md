@@ -1,6 +1,6 @@
 # feature-inspect
 
-The result of the following paper: ... _pending_ ...
+The result of the following paper: [Open-source framework for detecting bias and overfitting for large pathology images](https://arxiv.org/abs/2503.01827)
 
 
 This package is an open-source tool to explore high-level features from images with UMAPs and/or linear-probing.

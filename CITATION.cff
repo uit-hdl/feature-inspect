@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: If you use this software, please cite both the article from preferred-citation and the software itself.
+authors:
+  - family-names: Anders Sildnes
+    given-names: Nikita Shvetsov
+  - family-names: Masoud Tafavvoghi
+    given-names: Vi Ngoc-Nha Tran
+  - family-names: Kajsa Møllersen
+    given-names: Lill-Tove Rasmussen Busund
+  - family-names: Thomas K. Kilvær
+    given-names: Lars Ailo Bongo
+title: Open-source framework for detecting bias and overfitting for large pathology images
+version: 1.0.0
+url: https://arxiv.org/abs/2503.01827
+date-released: '2025-03-07'
+preferred-citation:
+  authors:
+    - family-names: Anders Sildnes
+      given-names: Nikita Shvetsov
+    - family-names: Masoud Tafavvoghi
+      given-names: Vi Ngoc-Nha Tran
+    - family-names: Kajsa Møllersen
+      given-names: Lill-Tove Rasmussen Busund
+    - family-names: Thomas K. Kilvær
+      given-names: Lars Ailo Bongo
+  title: Open-source framework for detecting bias and overfitting for large pathology images
+  url: https://arxiv.org/abs/2503.01827
+  type: generic
+  year: '2025'
+  conference: {}
+  publisher: {}
