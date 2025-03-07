@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 import umap
 import zarr
-import zarr.core.group
 import zarr.storage
 from bokeh.io import output_file, save
 from bokeh.layouts import column
@@ -136,8 +135,8 @@ class ClusteringMetrics:
             df["ss"] = [ss]
         return df
 
-    def _cache_metrics(self, zroot: zarr.core.group.Group, lookup_key):
-        node: zarr.core.group.Group = zroot.require_group(lookup_key)
+    def _cache_metrics(self, zroot: zarr.Group, lookup_key):
+        node: zarr.Group = zroot.require_group(lookup_key)
         dst = node.create_array("metrics", shape=[1], dtype=np.float32)
         for key, value in self.df.items():
             dst.attrs[key] = value.values[0]
@@ -149,7 +148,7 @@ class UmapRunner:
     def __init__(
         self,
         config: UmapConfig,
-        zroot: zarr.core.group.Group,
+        zroot: zarr.Group,
         writer: SummaryWriter = None,
         use_cuml: bool = False,
     ):
@@ -271,6 +270,8 @@ def make_umap(
     render_html=False,
     logger=logger,
     show_plot=True,
+    show_plot_title="fig",
+    show_plot_step : int = -1,
     use_cuml=False,
 ):
     start = time.time()
@@ -332,8 +333,10 @@ def make_umap(
     else:
         for i, runner in enumerate(runners):
             for key in columns:
+                if isinstance(key, list):
+                    raise ValueError("Pandas dataframe contains a list")
                 plot_metrics = ClusteringMetrics(key, do_ss=do_ss)(
-                    i, runner, labels[[key]]
+                    i, runner, labels,
                 )
                 metrics[key] = pd.concat(
                     [
@@ -442,7 +445,7 @@ def make_umap(
                 logger.info("Copying images to output directory for easier exports...")
                 for file in labels[ImageLabels.FILENAME].values:
                     dst = os.path.join(out_dir, file.lstrip(os.sep))
-                    ensure_dir_exists(dst)
+                    ensure_dir_exists(os.path.dirname(dst))
                     if os.path.exists(file) and not os.path.exists(dst):
                         shutil.copy2(file, dst)
 
@@ -464,7 +467,7 @@ def make_umap(
                     cmap="Spectral",
                 )
                 fig_label = (
-                    "ue_fig_"
+                    f"umap_{show_plot_title}_"
                     + "_".join(runner.config.lookup_key.split("/")[1:]).replace(
                         " ", "_"
                     )
@@ -472,7 +475,10 @@ def make_umap(
                     + c
                 )
                 if writer:
-                    writer.add_figure(fig_label, fig)
+                    if show_plot_step > -1:
+                        writer.add_figure(fig_label, fig, global_step=show_plot_step)
+                    else:
+                        writer.add_figure(fig_label, fig)
                     logger.debug(f"wrote figure '{fig_label}' to tensorboard")
                 else:
                     plt.show()

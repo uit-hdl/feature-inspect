@@ -4,6 +4,7 @@ import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from bokeh import events
 from bokeh.layouts import column, row
 from bokeh.models import (
     CategoricalSlider,
@@ -173,6 +174,7 @@ def make_umap_widget(
             title=title,
         )
 
+
         tt = TapTool()
         tt.callback = OpenURL(url="@image_url")
         # prevent selection after click on tt
@@ -313,6 +315,17 @@ def make_umap_widget(
     text_input.js_on_change("value", callback_search)
     multibox_input = MultiSelect(options=list(map(str, unique_labels)), size=40)
     multibox_input.js_on_change("value", callback_selector)
+
+    # # make it possible to hide the legend with a doubletap
+    # def show_hide_legend(legend=plot.legend[0]):
+    #     legend.visible = not legend.visible
+
+    callback_legend = CustomJS(args=dict(legend=plot.legend[0]), code="""
+        legend.visible = !legend.visible;
+    """)
+    plot.js_on_event(events.DoubleTap, callback_legend)
+
+
 
     return row(row(*tabs), text_input, multibox_input)
 
