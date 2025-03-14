@@ -22,6 +22,7 @@ def divide_data(
     train_ratio=0.7,
     val_ratio=0.15,
     test_ratio=0.15,
+    writer = None,
 ):
     if not files:
         return {"train": [], "validation": [], "test": []}
@@ -34,14 +35,18 @@ def divide_data(
             label_to_data[item[CommonKeys.LABEL]].append(item)
 
         max_samples_per_label = min(len(items) for items in label_to_data.values())
+        num_train = int(max_samples_per_label * train_ratio)
+        num_val = int(max_samples_per_label * val_ratio)
+        num_test = int(max_samples_per_label * test_ratio)
+        if writer:
+            writer.add_text("lp_samples_per_class_train", str(num_train))
+            writer.add_text("lp_samples_per_class_val", str(num_val))
+            writer.add_text("lp_samples_per_class_test", str(num_test))
 
         train_data, val_data, test_data = [], [], []
 
         for items in label_to_data.values():
             random.shuffle(items)
-            num_train = int(max_samples_per_label * train_ratio)
-            num_val = int(max_samples_per_label * val_ratio)
-            num_test = int(max_samples_per_label * test_ratio)
 
             train_data.extend(items[:num_train])
             val_data.extend(items[num_train : num_train + num_val])

@@ -56,6 +56,7 @@ def lp_eval(
         train_ratio=train_ratio,
         val_ratio=val_ratio,
         test_ratio=test_ratio,
+        writer=writer,
     )
     balanced_text = "balanced (i.e. equal number of instances per class)" if balanced else ""
     if not splits["train"]:
