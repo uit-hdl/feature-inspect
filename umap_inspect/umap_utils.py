@@ -376,7 +376,7 @@ def make_metrics_table(metrics_data):
 
 
 def make_datasource(labels, label_key, img_preview_width=0.2, img_preview_height=0.2):
-    data = labels.copy()
+    data = labels.copy() # use integers for indexing
     data["label"] = labels[[label_key]]
 
     color_key_cmap = "tab20"

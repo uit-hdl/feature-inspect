@@ -25,7 +25,7 @@ if __name__ == "__main__":
         tb_dir = os.path.join(out_dir, "tb_logs")
         writer = init_tb_writer(os.path.join(out_dir, "tb_logs"), "small_example_test")
 
-        data = [{CommonKeys.IMAGE: f, "label": l} for f, l in zip(features, random_labels)]
+        data = [{CommonKeys.IMAGE: f, CommonKeys.LABEL: l} for f, l in zip(features, random_labels)]
         lp_eval(
             data=data,
             out_dir=out_dir,

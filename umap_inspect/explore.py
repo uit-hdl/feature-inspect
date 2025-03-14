@@ -318,6 +318,9 @@ def make_umap(
 
     if labels is None or labels.empty:
         labels = pd.DataFrame({ImageLabels.DEFAULT: [0] * len(values)})
+    else:
+        # reset index to integers
+        labels = labels.reset_index()
 
     columns = labels.columns.tolist()
     if ImageLabels.FILENAME in columns:
@@ -325,7 +328,6 @@ def make_umap(
     if ImageLabels.IMAGE_URL in columns:
         columns.remove(ImageLabels.IMAGE_URL)
 
-    # if there are no columns other than [ImageLabels.FILENAME, ImageLabels.IMAGE_URL] in columns:
     if labels.columns.isin([ImageLabels.FILENAME, ImageLabels.IMAGE_URL]).all():
         logger.info(
             "not computing cluster metrics: no cluster specific labels in annotations"

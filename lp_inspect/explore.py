@@ -23,7 +23,12 @@ Train a small linear classifier on top of the embeddings to predict the labels
 
 
 def lp_eval(
-    data: List[ImageSample], out_dir: str = "./out", writer: SummaryWriter = None, **kwargs
+    data: List[ImageSample],
+    out_dir: str = "./out",
+    writer: SummaryWriter = None,
+    balanced : bool = True,
+    device = None,
+    **kwargs
 ):
     batch_size = kwargs.get("batch_size", 64)
 
@@ -35,26 +40,30 @@ def lp_eval(
     labels = np.unique([item[CommonKeys.LABEL] for item in data])
     if len(labels) == 1:
         raise ValueError(
-            "Only one unique label for predictions will not give meaningful results"
+            "Only one unique label for predictions, expected > 1"
         )
     class_map = {c: i for i, c in enumerate(labels)}
     # pytorch requires labels to be integers
     for d in data:
         d[CommonKeys.LABEL] = class_map[d[CommonKeys.LABEL]]
 
+    train_ratio=kwargs.get("train_ratio", 0.7)
+    val_ratio=kwargs.get("val_ratio", 0.15)
+    test_ratio=kwargs.get("test_ratio", 0.15)
     splits = divide_data(
         data,
-        balanced=True,
-        train_ratio=kwargs.get("train_ratio", 0.7),
-        val_ratio=kwargs.get("val_ratio", 0.15),
-        test_ratio=kwargs.get("test_ratio", 0.15),
+        balanced=balanced,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio,
     )
+    balanced_text = "balanced (i.e. equal number of instances per class)" if balanced else ""
     if not splits["train"]:
-        raise ValueError("No data for LP training")
+        raise ValueError(f"After dividing data into {balanced_text} stratifications using {train_ratio*100}% of train data, no data remains")
     if not splits["validation"]:
-        raise ValueError("No data for LP validation")
+        raise ValueError(f"After dividing data into {balanced_text} stratifications using {val_ratio*100}% of validation data, no data remains")
     if not splits["test"]:
-        raise ValueError("No data for LP test")
+        raise ValueError(f"After dividing data into {balanced_text} stratifications using {test_ratio*100}% of test data, no data remains")
     dl_train = DataLoader(Dataset(splits["train"]), batch_size=batch_size, shuffle=True)
     dl_val = DataLoader(
         Dataset(splits["validation"]), batch_size=batch_size, shuffle=True
@@ -87,7 +96,7 @@ def lp_eval(
             step=0,
         )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
     number_features = len(data[0][CommonKeys.IMAGE])
     model = LinearProbe(number_features, len(class_map)).to(device)
 

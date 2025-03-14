@@ -18,26 +18,26 @@ def main():
 
         #explore.make_umap(features)
 
-        # if you want to see the images in the output, we need to add filenames in the annotations:
-        annotations = pd.DataFrame(data=names, columns=[ImageLabels.FILENAME])
-        #explore.make_umap(features, min_dists=[0.1], annotations=annotations)
+        # if you want to see the images in the output html, we need to add filenames in the labels:
+        labels = pd.DataFrame(data=names, columns=[ImageLabels.FILENAME])
+        #explore.make_umap(features, min_dists=[0.1], labels=labels)
 
         # (the images may not render unless you view it in a browser from the .html file):
-        # explore.make_umap(features, annotations=annotations, render_html=True, out_dir=".")
+        # explore.make_umap(features, labels=labels, render_html=True, out_dir=".")
 
         # if you want to side by side with the raw image data:
-        # explore.make_umap(features, raw_values=values, annotations=annotations,
+        # explore.make_umap(features, raw_values=values, labels=labels,
         #                   min_dists=[0.1, 0.9],
         #                   n_intervals=[2, 15, 25])#, out_dir="out")
 
-        # if you want metrics:
+        # if you want performance metrics from plot generation:
         from misc.global_util import init_tb_writer
         writer = init_tb_writer(temp_dir, "tensorboard_stats")
         # generate 0 or 1 labels for the images
-        annotations["label"] = np.random.randint(0, 2, size=(len(names))).tolist()
+        labels["label"] = np.random.randint(0, 2, size=(len(names))).tolist()
         make_umap(features,
                           raw_values=values,
-                          labels=annotations,
+                          labels=labels,
                           min_dists=[0.1, 0.9],
                           n_intervals=[2, 15, 25],
                           knn=False,
