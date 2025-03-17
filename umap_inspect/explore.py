@@ -319,8 +319,8 @@ def make_umap(
     if labels is None or labels.empty:
         labels = pd.DataFrame({ImageLabels.DEFAULT: [0] * len(values)})
     else:
-        # reset index to integers
-        labels = labels.reset_index()
+        # reset index to integers??
+        pass
 
     columns = labels.columns.tolist()
     if ImageLabels.FILENAME in columns:
