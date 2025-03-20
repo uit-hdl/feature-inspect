@@ -145,6 +145,7 @@ class UmapHandler:
                          writer=self.summary_writer,
                          out_dir=self.umap_dir,
                          show_plot=self.show_plot,
+                         show_plot_step=engine.state.epoch,
                          logger=self.logger,
                          **self.kwargs,
                          )

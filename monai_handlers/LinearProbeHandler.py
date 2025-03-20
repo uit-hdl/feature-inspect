@@ -8,7 +8,7 @@ from monai.handlers.tensorboard_handlers import SummaryWriterX
 from monai.utils import min_version, optional_import, CommonKeys
 from tensorboardX import SummaryWriter
 
-from lp_inspect import linear_probe as lp
+import lp_inspect as lp
 
 Events, _ = optional_import("ignite.engine", IgniteInfo.OPT_IMPORT_VERSION, min_version, "Events")
 if TYPE_CHECKING:
@@ -132,8 +132,11 @@ class LinearProbeHandler:
             return
 
         if self.iteration_predictions:
-            lp.linear_probe(data=[{CommonKeys.IMAGE: i, CommonKeys.LABEL: l} for (i,l) in zip(self.iteration_predictions, self.iteration_labels)],
-                            writer=self.summary_writer,
+            # initialize a new summarywriter
+            # otherwise you won't be able to distinguish scalars from multiple calls to lp_eval
+            writer= SummaryWriter(logdir=self.summary_writer.get_logdir() + f"_lp_epoch{engine.state.epoch}")
+            lp.lp_eval(data=[{CommonKeys.IMAGE: i, CommonKeys.LABEL: l} for (i,l) in zip(self.iteration_predictions, self.iteration_labels)],
+                            writer=writer,
                             out_dir=self.out_dir,
                             **self.kwargs
                             )

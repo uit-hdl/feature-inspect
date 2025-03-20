@@ -79,6 +79,8 @@ def monitor_memory(stop_event, interval, action, writer):
 
 
 def track_method(func, action_name, writer, track_gpu=False, i=0):
+    if i == -1:
+        i = 0
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not writer:

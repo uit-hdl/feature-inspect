@@ -192,7 +192,7 @@ class UmapRunner:
             )
 
         embedding = tracker(
-            umap_conf.fit_transform, f"umap_{self.config.mode.split(' ')[0]}"
+            umap_conf.fit_transform, f"ue_{self.config.mode.split(' ')[0]}"
         )(np.array(self.config.values))
 
         ds = None
@@ -393,7 +393,7 @@ def make_umap(
                     tracker = lambda l: l
                 else:
                     tracker = lambda l: track_method(
-                        l, f"make_widget_for_{key}", writer, runner.i
+                        l, f"ue_make_widget_for_{key}", writer, runner.i
                     )
 
                 widget = tracker(make_umap_widget)(
@@ -430,7 +430,7 @@ def make_umap(
 
         if out_dir is None:
             logger.info("Showing UMAP plot in browser...")
-            track_method(show, "ue_render_html", writer, 0)(out_widget)
+            track_method(show, "ue_render_html", writer, show_plot_step)(out_widget)
         else:
             html_dst = os.path.join(out_dir, f"umap_inspect_{len(values)}.html")
             i = 1
@@ -440,7 +440,7 @@ def make_umap(
                 i += 1
             output_file(html_dst, title="UMAP")
             ensure_dir_exists(os.path.dirname(html_dst))
-            track_method(save, "ue_save_html", writer, 0)(out_widget)
+            track_method(save, "ue_save_html", writer, show_plot_step)(out_widget)
             logger.info("Output written to {}".format(html_dst))
 
             if include_images and ImageLabels.FILENAME in labels.columns:
@@ -452,7 +452,10 @@ def make_umap(
                         shutil.copy2(file, dst)
 
     if writer is not None:
-        writer.add_scalar("ue_total_sec", time.time() - start)
+        if show_plot_step > -1:
+            writer.add_scalar("ue_total_sec", time.time() - start, global_step=show_plot_step)
+        else:
+            writer.add_scalar("ue_total_sec", time.time() - start)
 
     if show_plot:
         for i, runner in enumerate(runners):
@@ -469,7 +472,7 @@ def make_umap(
                     cmap="Spectral",
                 )
                 fig_label = (
-                    f"umap_{show_plot_title}_"
+                    f"ue_{show_plot_title}_"
                     + "_".join(runner.config.lookup_key.split("/")[1:]).replace(
                         " ", "_"
                     )
