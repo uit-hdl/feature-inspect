@@ -9,7 +9,7 @@ description = "A tool for exploring UMAP embeddings or other high-dimensional da
 authors = [
     { name = "Anders Sildnes", email = "anders.sildnes@uit.no" }
 ]
-license = { text = "Apache 2.0 License" }
+license = "Apache 2.0 License"
 readme = "README.md"
 requires-python = ">=3.11"
 keywords = ["umap", "explore", "linear probing"]
