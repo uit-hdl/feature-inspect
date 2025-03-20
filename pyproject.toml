@@ -60,7 +60,7 @@ all = ["fairlearn", "monai", "pynvml", "pytorch-ignite", "torch"]
 umap_inspect = "umap_inspect"
 lp_inspect = "lp_inspect"
 fi_misc = "fi_misc"
-monai_handler = "monai_handler"
+monai_handlers = "monai_handlers"
 
 [tool.setuptools]
-packages = ["umap_inspect", "lp_inspect", "fi_misc", "monai_handler"]
+packages = ["umap_inspect", "lp_inspect", "fi_misc", "monai_handlers"]
