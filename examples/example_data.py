@@ -7,9 +7,9 @@ from PIL import Image
 import zarr.storage
 from tqdm import tqdm
 
-from misc.data import ImageLabels
-from misc.global_util import ensure_dir_exists
-from misc.global_util import logger
+from fi_misc.data import ImageLabels
+from fi_misc.global_util import ensure_dir_exists
+from fi_misc.global_util import logger
 
 
 def find_all_arrays(group):

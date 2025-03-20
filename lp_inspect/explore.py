@@ -10,7 +10,7 @@ from tensorboardX import SummaryWriter
 
 from .data import divide_data, ImageSample
 from .model import LinearProbe, train, evaluate_model, plot_distributions
-from misc.benchmark import track_method
+from fi_misc.benchmark import track_method
 
 """
 Train a small linear classifier on top of the embeddings to predict the labels

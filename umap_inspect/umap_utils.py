@@ -28,7 +28,7 @@ from bokeh.models import (
 from bokeh.models.dom import HTML
 from bokeh.plotting import figure
 
-from misc.data import ImageLabels
+from fi_misc.data import ImageLabels
 from .constants import generate_tooltips
 
 

@@ -28,8 +28,8 @@ import pandas as pd
 
 from examples.example_data import load_zarr_store
 from lp_inspect import lp_eval
-from misc.data import ImageLabels
-from misc.global_util import ensure_dir_exists, init_tb_writer
+from fi_misc.data import ImageLabels
+from fi_misc.global_util import ensure_dir_exists, init_tb_writer
 
 
 def parse_args():

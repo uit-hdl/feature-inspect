@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-from misc.global_util import logger
+from fi_misc.global_util import logger
 
 import os
 import shutil
@@ -26,9 +26,9 @@ from bokeh.plotting import show
 from matplotlib import pyplot as plt
 from sklearn.metrics import silhouette_score
 
-from misc.benchmark import track_method
-from misc.data import ImageLabels
-from misc.global_util import ensure_dir_exists
+from fi_misc.benchmark import track_method
+from fi_misc.data import ImageLabels
+from fi_misc.global_util import ensure_dir_exists
 
 from umap_inspect.constants import METRIC_HELPTEXT, METRIC_CITETEXT, UmapMode
 from umap_inspect.umap_metrics import compute_knn, compute_cpd

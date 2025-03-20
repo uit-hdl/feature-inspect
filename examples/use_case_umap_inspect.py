@@ -30,9 +30,9 @@ import zarr.storage
 from xdg_base_dirs import xdg_cache_home, xdg_data_home
 
 from example_data import load_zarr_store
-from misc.data import ImageLabels
-from misc.global_util import ensure_dir_exists, init_tb_writer
-from misc.global_util import logger
+from fi_misc.data import ImageLabels
+from fi_misc.global_util import ensure_dir_exists, init_tb_writer
+from fi_misc.global_util import logger
 from umap_inspect.explore import get_umap_neighbors_intervals, make_umap
 from umap_inspect.image_utils import get_raw_features
 

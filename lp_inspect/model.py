@@ -1,4 +1,4 @@
-from misc.global_util import logger
+from fi_misc.global_util import logger
 from collections import defaultdict
 
 import numpy as np
@@ -35,8 +35,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from tqdm import tqdm
 
-from misc.data import ImageLabels
-from misc.global_util import ensure_dir_exists, dataframe_to_image
+from fi_misc.data import ImageLabels
+from fi_misc.global_util import ensure_dir_exists, dataframe_to_image
 
 
 class LinearProbe(nn.Module):

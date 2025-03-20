@@ -1,4 +1,4 @@
-from misc.global_util import logger
+from fi_misc.global_util import logger
 import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any

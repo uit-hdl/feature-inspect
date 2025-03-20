@@ -1,6 +1,6 @@
 from enum import Enum, StrEnum
 
-from misc.data import ImageLabels
+from fi_misc.data import ImageLabels
 
 
 class UmapMode(StrEnum):

@@ -1,4 +1,4 @@
-from misc.global_util import logger
+from fi_misc.global_util import logger
 import os
 import threading
 import time

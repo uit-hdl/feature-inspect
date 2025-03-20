@@ -1,7 +1,7 @@
 import glob
 from typing import TypeAlias
 
-from misc.global_util import logger
+from fi_misc.global_util import logger
 
 import os
 import random
@@ -11,7 +11,7 @@ import pandas as pd
 from monai.utils import CommonKeys
 import torch
 
-from misc.global_util import ensure_dir_exists
+from fi_misc.global_util import ensure_dir_exists
 
 ImageSample: TypeAlias = dict[str, torch.Tensor | int]
 

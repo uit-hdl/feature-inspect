@@ -31,7 +31,7 @@ def main():
         #                   n_intervals=[2, 15, 25])#, out_dir="out")
 
         # if you want performance metrics from plot generation:
-        from misc.global_util import init_tb_writer
+        from fi_misc.global_util import init_tb_writer
         writer = init_tb_writer(temp_dir, "tensorboard_stats")
         # generate 0 or 1 labels for the images
         labels["label"] = np.random.randint(0, 2, size=(len(names))).tolist()

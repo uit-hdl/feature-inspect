@@ -11,7 +11,7 @@ from monai.utils import CommonKeys
 
 from examples.example_data import generate_random_embeddings
 from lp_inspect import lp_eval
-from misc.global_util import init_tb_writer
+from fi_misc.global_util import init_tb_writer
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
