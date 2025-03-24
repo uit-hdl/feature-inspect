@@ -183,6 +183,7 @@ class UmapRunner:
             return plot
 
         if len(self.config.values) >= 10 and _CUML_IMPORTED:
+            from cuml.manifold.umap import UMAP as cumlUMAP
             umap_conf = cumlUMAP(
                 n_neighbors=self.config.n, min_dist=self.config.min_dist
             )
@@ -274,7 +275,6 @@ def make_umap(
     show_plot_step : int = -1,
     use_cuml=False,
 ):
-    start = time.time()
     # check if cuml is imported
     if use_cuml:
         try:
@@ -289,6 +289,7 @@ def make_umap(
             logger.warning(
                 "Not using GPU for UMAP: unable to import cuml.manifold.umap"
             )
+    start = time.time()
 
     if min_dists is None or len(min_dists) == 0:
         min_dists = [0.1]
