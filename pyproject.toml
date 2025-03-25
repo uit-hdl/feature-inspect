@@ -45,7 +45,7 @@ Homepage = "https://github.com/uit-hdl/feature-inspect"
 lp_inspect = [
     "fairlearn",
     "monai",
-    "pynvml",
+    "nvidia-ml-py",
     "pytorch-ignite",
     "torch",
 ]

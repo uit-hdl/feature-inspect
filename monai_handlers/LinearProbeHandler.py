@@ -45,7 +45,7 @@ class LinearProbeHandler:
         trainer = ignite.engine.Engine(lambda eng,batch: batch)
         LinearProbeHandler(**dict(epochs=1), output_transform=from_engine([CommonKeys.PRED, CommonKeys.LABEL])) \
             .attach(trainer)
-        samples = [{CommonKeys.PRED: torch.rand((128, 10)), CommonKeys.LABEL: torch.randint(0, 9, (128,)).detach().numpy()}]
+        samples = [{CommonKeys.PRED: torch.rand((1536, 10)), CommonKeys.LABEL: torch.randint(0, 9, (1536,)).detach().numpy()}]
         trainer.run(samples, max_epochs=1)
     """
 
@@ -58,6 +58,7 @@ class LinearProbeHandler:
             every_n_epochs: int = 1,
             state_attributes: Sequence[str] | None = None,
             name: str | None = "LinearProbeHandler",
+            labels: List | None = None,
             out_dir: str = "out",
             model: torch.nn.Module | None = None,
             **kwargs: Any,
@@ -93,6 +94,7 @@ class LinearProbeHandler:
         self.iteration_labels = []
         self.model = model
         self.feature_layer_name = feature_layer_name
+        self.labels = labels
         self.hook_handle = None
         self.every_n_epochs = every_n_epochs
         self.out_dir = out_dir
@@ -135,11 +137,11 @@ class LinearProbeHandler:
             # initialize a new summarywriter
             # otherwise you won't be able to distinguish scalars from multiple calls to lp_eval
             writer= SummaryWriter(logdir=self.summary_writer.get_logdir() + f"_lp_epoch{engine.state.epoch}")
-            lp.lp_eval(data=[{CommonKeys.IMAGE: i, CommonKeys.LABEL: l} for (i,l) in zip(self.iteration_predictions, self.iteration_labels)],
-                            writer=writer,
-                            out_dir=self.out_dir,
-                            **self.kwargs
-                            )
+            lp.make_lp(data=[{CommonKeys.IMAGE: i, CommonKeys.LABEL: l} for (i, l) in zip(self.iteration_predictions, self.iteration_labels)],
+                       writer=writer,
+                       out_dir=self.out_dir,
+                       **self.kwargs
+                       )
             self.iteration_predictions = []
             self.iteration_labels = []
         else:
@@ -154,11 +156,17 @@ class LinearProbeHandler:
             engine: Ignite Engine, it can be a trainer, validator or evaluator.
 
         """
+        import ipdb; ipdb.set_trace()
         output = self.output_transform(engine.state.output)
         if not isinstance(output, tuple):
             raise ValueError("output_transform must return a tuple of (predictions, labels).")
         predictions = output[0]
-        labels = output[1]
+        if labels:
+            for l in labels:
+                # for each i[l], attach this to an elongated dataframe or whatever....
+                labels = [i["ImageName"] for i in engine.state.batch]
+        else:
+            labels = output[1]
         self.iteration_labels.extend(labels)
         # if there is no model or feature_layer_name, we collect the predictions directly from the output
         # otherwise, it will be done in the hook

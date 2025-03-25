@@ -10,7 +10,7 @@ import numpy as np
 from monai.utils import CommonKeys
 
 from examples.example_data import generate_random_embeddings
-from lp_inspect import lp_eval
+from lp_inspect import make_lp
 from fi_misc.global_util import init_tb_writer
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         writer = init_tb_writer(os.path.join(out_dir, "tb_logs"), "small_example_test")
 
         data = [{CommonKeys.IMAGE: f, CommonKeys.LABEL: l} for f, l in zip(features, random_labels)]
-        lp_eval(
+        make_lp(
             data=data,
             out_dir=out_dir,
             writer=writer,

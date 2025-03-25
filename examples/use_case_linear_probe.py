@@ -26,8 +26,9 @@ from time import time
 
 import pandas as pd
 
+sys.path.append(".")
 from examples.example_data import load_zarr_store
-from lp_inspect import lp_eval
+from lp_inspect import make_lp
 from fi_misc.data import ImageLabels
 from fi_misc.global_util import ensure_dir_exists, init_tb_writer
 
@@ -96,14 +97,15 @@ if __name__ == "__main__":
         "batch": args.batch_size,
         "debug": str(args.debug_mode),
     })
+    print("Out-dir: " + args.out_dir)
 
     ensure_dir_exists(args.out_dir)
-    lp_eval(data=data,
-                 out_dir=args.out_dir,
-                 writer=writer,
-                 epochs=args.epochs,
-                 batch_size=args.batch_size,
-                 lr=args.lr)
+    make_lp(data=data,
+            out_dir=args.out_dir,
+            writer=writer,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            lr=args.lr)
 
     logging.info("Inspect results with:\ntensorboard --logdir %s", os.path.join(args.out_dir, "tb_logs"))
     logging.info("Done")

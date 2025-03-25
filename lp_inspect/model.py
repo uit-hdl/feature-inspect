@@ -1,3 +1,5 @@
+import os
+
 from fi_misc.global_util import logger
 from collections import defaultdict
 
@@ -31,7 +33,7 @@ from monai.inferers import SimpleInferer
 from monai.networks import eval_mode
 from monai.transforms import Compose, EnsureTyped
 from monai.utils import CommonKeys
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, cohen_kappa_score
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from tqdm import tqdm
 
@@ -107,25 +109,43 @@ def train(out_dir, model, dl_train, dl_val, epochs, device, optimizer, loss, wri
 
 
 def evaluate_model(
-    model, dl_test: DataLoader, class_map, device="cpu", writer=None, step=0
+    model, dl_test: DataLoader, predictions_out_file, class_map, device="cpu", writer=None, step=0
 ):
+    if len(dl_test) == 0:
+        raise ValueError("No test data available")
+
     predictions = np.array([])
     gts = np.array([])
     logger.info("Evaluating model")
     wrong_predictions = defaultdict(list)
+    correct_predictions = defaultdict(list)
     class_map_inv = {v: k for k, v in class_map.items()}
     with eval_mode(model):
         for item in tqdm(dl_test):
             y = model(item[CommonKeys.IMAGE].to(device))
-            prob = F.softmax(y).detach().to("cpu")
+            prob = F.softmax(y, dim=1).detach().to("cpu")
             pred = torch.argmax(prob, dim=1).numpy()
 
             predictions = np.append(predictions, pred)
 
-            gt = item[CommonKeys.LABEL].detach().cpu().numpy()
+            gt = item[CommonKeys.LABEL]
             gts = np.append(gts, gt)
-            for i, (p, g) in enumerate(zip(pred, gt)):
-                if p != g:
+            for i, (_p, _g) in enumerate(zip(pred, gt)):
+                p = _p
+                g = _g
+                if isinstance(_p, torch.Tensor):
+                    p = _p.item()
+                if isinstance(_g, torch.Tensor):
+                    g = _g.item()
+
+                if p == g:
+                    if ImageLabels.FILENAME in item:
+                        correct_predictions[class_map_inv[g]].append(
+                            (item[ImageLabels.FILENAME][i], g, p)
+                        )
+                    else:
+                        correct_predictions[class_map_inv[g]].append((None, g, p))
+                else:
                     if ImageLabels.FILENAME in item:
                         wrong_predictions[class_map_inv[g]].append(
                             (item[ImageLabels.FILENAME][i], g, p)
@@ -133,6 +153,8 @@ def evaluate_model(
                     else:
                         wrong_predictions[class_map_inv[g]].append((None, g, p))
 
+    labels = list(class_map_inv.values())
+    gt_codes = [class_map_inv[x] for x in gts]
     metrics_dict = {
         "accuracy": accuracy_score,
         "selection_rate": selection_rate,
@@ -144,12 +166,8 @@ def evaluate_model(
         metrics_dict["tn_rate"] = true_negative_rate
         metrics_dict["fp_rate"] = false_positive_rate
         metrics_dict["fn_rate"] = false_negative_rate
-    mf = MetricFrame(
-        metrics=metrics_dict,
-        y_true=gts,
-        y_pred=predictions,
-        sensitive_features=list(class_map_inv[x] for x in gts),
-    )
+    mf = MetricFrame(metrics=metrics_dict, y_true=gt_codes, y_pred=predictions, sensitive_features=gts)
+    # save gts and predictions to csv
     logger.info(mf.overall)
     if writer:
         writer.add_scalar("lp_test_acc", mf.overall["accuracy"], global_step=step)
@@ -177,11 +195,11 @@ def evaluate_model(
                     if len(wrong_predictions) == 1 or grid_size == 1:
                         axes[col].imshow(plt.imread(image_filename))
                         axes[col].set_title(
-                            "pred: {}".format(class_map_inv[p]), fontsize=fontsize
+                            "pred: {}".format(class_map[p]), fontsize=fontsize
                         )
                     else:
                         axes[row][col].imshow(plt.imread(image_filename))
-                        axes[row][col].set_title("pred: {}".format(class_map_inv[p]))
+                        axes[row][col].set_title("pred: {}".format(class_map[p]))
                     i += 1
         else:
             fig, ax = plt.subplots()
@@ -194,6 +212,17 @@ def evaluate_model(
     else:
         fig, ax = plt.subplots()
         ax.text(0.5, 0.5, "No wrong predictions", fontsize=12, ha="center")
+
+    # create a list with all predictions for all file and the predicted label
+    preds = []
+    for li in list(list(wrong_predictions.values()) + list(correct_predictions.values())):
+        for item in li:
+            preds.append({"filename": item[0], "predicted_label": item[2], "correct_label": item[1]})
+    preds_df = pd.DataFrame(preds)
+    if not os.path.exists(os.path.dirname(predictions_out_file)):
+        os.makedirs(os.path.dirname(predictions_out_file))
+    preds_df.to_csv(predictions_out_file, index=False)
+    logger.info(f"Wrote {preds_df} with {len(preds)} rows")
 
     if writer:
         writer.add_figure("lp_wrong_predictions", fig, global_step=step)
@@ -208,23 +237,14 @@ def evaluate_model(
     else:
         plt.show()
 
-    labels = list(class_map_inv.values())
-    plot_results(
-        list(class_map_inv[x] for x in gts),
-        list(class_map_inv[x] for x in predictions),
-        labels,
-        "test_acc",
-        writer=writer,
-        step=step,
-    )
+    plot_results(gt_codes, predictions.tolist(), labels, "test_acc", writer=writer, step=step,)
 
-    plot_distributions(
-        [x[CommonKeys.LABEL] for x in dl_test.dataset.data],
-        "test",
-        class_map_inv,
-        writer,
-        step=step,
-    )
+    plot_distributions( [x[CommonKeys.LABEL] for x in dl_test.dataset.data], "test", class_map_inv, writer, step=step,)
+
+    kappa = cohen_kappa_score(predictions, gt_codes)
+    writer.add_scalar("kappa", kappa, global_step=step)
+
+    return mf.overall["accuracy"], kappa
 
 
 def plot_results(gts, predictions, labels, title, writer=None, step=0):
@@ -237,6 +257,8 @@ def plot_results(gts, predictions, labels, title, writer=None, step=0):
     fig = cmd.ax_.get_figure()
     fig.set_figwidth(20)
     fig.set_figheight(20)
+
+    # TODO: also write a file called "predictions.csv" with the fileName, groundTruth, and prediction columns
 
     if writer:
         writer.add_scalar(
