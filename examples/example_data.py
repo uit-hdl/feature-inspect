@@ -37,10 +37,10 @@ def find_all_arrays(group):
             if isinstance(member, zarr.Group):
                 groups_to_visit.append((member, full_path))
             for array_name, array in member.arrays():
-                arrays.append(array)
+                arrays.append(array[:])
                 names.append(f"{full_path}/{array_name}")
         i += 1
-    return (names, arrays)
+    return names, arrays
             
 
 def load_zarr_store(store_path):
@@ -50,7 +50,7 @@ def load_zarr_store(store_path):
         raise ValueError(f"Store path {store_path} does not exist")
 
     with zarr.storage.LocalStore(store_path) as store:
-        root = zarr.open_group(store)
+        root = zarr.open_group(store, mode='r')
         logger.info(f"Loading embeddings from {store_path}")
         names, features = find_all_arrays(root)
         if not names or not features:

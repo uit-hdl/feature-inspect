@@ -5,7 +5,9 @@ from fi_misc.global_util import logger
 import os
 import shutil
 import time
+from sklearn.metrics.cluster import adjusted_rand_score
 from collections import defaultdict
+from sklearn.cluster import KMeans
 from typing import List
 
 from pandas import DataFrame
@@ -275,6 +277,8 @@ def make_umap(
     show_plot_step : int = -1,
     use_cuml=False,
 ):
+
+    start = time.time()
     # check if cuml is imported
     if use_cuml:
         try:
@@ -320,8 +324,14 @@ def make_umap(
     if labels is None or labels.empty:
         labels = pd.DataFrame({ImageLabels.DEFAULT: [0] * len(values)})
     else:
-        # reset index to integers??
-        pass
+        if len(labels.index) != len(values):
+            raise ValueError(f"Number of labels ({len(labels.index)}) != number of values ({len(values)})")
+        if raw_values is not None and len(labels.index) != len(raw_values):
+            raise ValueError(f"Number of labels ({len(labels.index)}) != number of raw values ({len(raw_values)})")
+        # Check each column for numpy arrays or torch tensors
+        for col in labels.columns:
+            if labels[col].apply(lambda x: isinstance(x, np.ndarray) or "Tensor" in str(type(x))).any():
+                raise ValueError(f"Column '{col}' contains numpy arrays or tensors, which is not allowed.")
 
     columns = labels.columns.tolist()
     if ImageLabels.FILENAME in columns:
@@ -396,6 +406,15 @@ def make_umap(
                     tracker = lambda l: track_method(
                         l, f"ue_make_widget_for_{key}", writer, runner.i
                     )
+
+                try:
+                    print("Running kmeans for ARI")
+                    kmeans_labels = KMeans(n_clusters=len(unique_labels)).fit_predict(runner.plot.embedding)
+                    print("Done...")
+                    ari = adjusted_rand_score(labels[key].tolist(), kmeans_labels)
+                    print("RAI: " + str(ari))
+                except Exception as e:
+                    print(e)
 
                 widget = tracker(make_umap_widget)(
                     runner.plot.embedding,

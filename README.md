@@ -26,6 +26,7 @@ Examples are given in the [examples](examples) folder. But a simple example is:
 
 ```python
 import numpy as np
+
 images = np.random.rand(100, 32, 32, 3)
 # .. use a model or clustering method to extract features from the images
 # which should be an array of shape (100, N), where N is the number of features
@@ -35,15 +36,15 @@ from umap_inspect import make_umap
 make_umap(features)
 
 # if you install linear_probe
-from lp_inspect import lp_eval
+from lp_inspect import make_lp
 
 # labels should be a list of strings in the same order as the features
 labels = [...]
 data = [{"image": f, "label": l} for f, l in zip(features, labels)]
-lp_eval(data=data)
+dl_test, model, _ = make_lp(data=data)
 ```
 Performance metrics and detailed results are written using [tensorboard](https://www.tensorflow.org/tensorboard).
-you can initialise a writer like this: `from torch.utils.tensorboard import SummaryWriter; writer = SummaryWriter(log_dir="path/to/logdir")`
+you can initialize a writer like this: `from torch.utils.tensorboard import SummaryWriter; writer = SummaryWriter(log_dir="path/to/logdir")`
 and pass it to the `make_umap` and `lp_eval` functions.
 
 UMAPs can be rendered to html instead of the most common matplotlib solution.
@@ -80,7 +81,5 @@ This will produce embeddings in the `out/` folder. Then you can run the followin
 
 ```bash
 # Creating a fine-tuned phikon model to do disease-classification on TCGA-LUSC
-ipython examples/use_case_linear_probe.py -- --embeddings-path out/phikon_TCGA_LUSC-tiles_embedding.zarr/ --label-file out/tcga-tile-annotations.csv --label-key disease --out-dir out_phikon_lp_disease --epochs 20 --batch-size 256
-
-ipython examples/evaluate_lp.py -- --embeddings-path out/phikon_CPTAC-tiles_embedding.zarr/ --label-file out/cptac-tile-annotations.csv --label-key disease --out-dir out_phikon_lp_disease --model-dir out_phikon_lp_disease --tensorboard-name cptac 
+ipython examples/use_case_linear_probe.py -- --embeddings-path phikon__embedding.zarr/ --label-file top5TSSfiles.csv --label-key institution --out-dir out_phikon_lp_inst --epochs 20 --batch-size 256
 ```
