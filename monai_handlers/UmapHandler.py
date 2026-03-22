@@ -12,7 +12,6 @@ from monai.apps import get_logger
 from monai.config import IgniteInfo
 from monai.handlers.tensorboard_handlers import SummaryWriterX
 from monai.utils import is_scalar, min_version, optional_import, CommonKeys
-from tensorboardX import SummaryWriter
 
 Events, _ = optional_import("ignite.engine", IgniteInfo.OPT_IMPORT_VERSION, min_version, "Events")
 if TYPE_CHECKING:
@@ -145,7 +144,6 @@ class UmapHandler:
                          writer=self.summary_writer,
                          out_dir=self.umap_dir,
                          show_plot=self.show_plot,
-                         show_plot_step=engine.state.epoch,
                          logger=self.logger,
                          **self.kwargs,
                          )

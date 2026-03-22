@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Any
 import torch
 from monai.apps import get_logger
 from monai.config import IgniteInfo
-from monai.handlers.tensorboard_handlers import SummaryWriterX
+from monai.handlers.tensorboard_handlers import SummaryWriter
 from monai.utils import min_version, optional_import, CommonKeys
-from tensorboardX import SummaryWriter
 
 import lp_inspect as lp
 
@@ -156,7 +155,6 @@ class LinearProbeHandler:
             engine: Ignite Engine, it can be a trainer, validator or evaluator.
 
         """
-        import ipdb; ipdb.set_trace()
         output = self.output_transform(engine.state.output)
         if not isinstance(output, tuple):
             raise ValueError("output_transform must return a tuple of (predictions, labels).")

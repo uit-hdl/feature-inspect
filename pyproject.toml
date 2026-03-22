@@ -30,7 +30,6 @@ dependencies = [
     "pillow",
     "psutil",
     "tensorboard",
-    "tensorboardX",
     "tox",
     "tqdm",
     "umap-learn",

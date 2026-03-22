@@ -50,6 +50,7 @@ def main():
         # the temporary image files are deleted upon exiting the code, so we enter a loop here to keep the images around
         logging.info("While the example is running, you can view outputs in Tensorboard with the following command:"
                      f"\ntensorboard --logdir {temp_dir}")
+        logging.info("Press Ctrl+C to exit")
         while True:
             sleep(100)
 

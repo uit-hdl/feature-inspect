@@ -64,7 +64,7 @@ def load_zarr_store(store_path):
 def extract_features(image):
     hist, bin_edges = np.histogram(np.array(image), bins=8, range=(0, 256))
     hist = hist.astype(np.float32) / hist.sum()
-    return hist
+    return hist.astype(np.float32)
 
 def generate_random_embeddings(temp_dir, num_images=100):
     images, features, values = [], [], []

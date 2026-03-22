@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-from tensorboardX import SummaryWriter
+from monai.handlers.tensorboard_handlers import SummaryWriter
 
 
 def __get_username():

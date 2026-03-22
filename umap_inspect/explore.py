@@ -11,8 +11,7 @@ from sklearn.cluster import KMeans
 from typing import List
 
 from pandas import DataFrame
-from tensorboardX import SummaryWriter
-
+from monai.handlers.tensorboard_handlers import SummaryWriter
 
 _CUML_IMPORTED = False
 import math
@@ -44,9 +43,9 @@ from umap_inspect.umap_utils import (
 )
 
 
-def get_umap_neighbors_intervals(num_values, writer, i):
+def get_umap_neighbors_intervals(num_values, writer):
     perplexity_score = math.floor(num_values / 100) if num_values > 200 else 2
-    writer.add_scalar("ue_perplexity", perplexity_score, i)
+    writer.add_scalar("ue_perplexity", perplexity_score)
     if num_values > 15:
         return sorted({perplexity_score, 15})
     return sorted({perplexity_score})
@@ -263,7 +262,7 @@ def make_umap(
     labels: DataFrame | None = None,
     min_dists=None,
     n_intervals=None,
-    writer=None,
+    writer : SummaryWriter = None,
     out_dir=None,
     point_size=3,
     include_images=False,
@@ -274,7 +273,6 @@ def make_umap(
     logger=logger,
     show_plot=True,
     show_plot_title="fig",
-    show_plot_step : int = -1,
     use_cuml=False,
 ):
 
@@ -450,7 +448,7 @@ def make_umap(
 
         if out_dir is None:
             logger.info("Showing UMAP plot in browser...")
-            track_method(show, "ue_render_html", writer, show_plot_step)(out_widget)
+            track_method(show, "ue_render_html", writer)(out_widget)
         else:
             html_dst = os.path.join(out_dir, f"umap_inspect_{len(values)}.html")
             i = 1
@@ -460,7 +458,7 @@ def make_umap(
                 i += 1
             output_file(html_dst, title="UMAP")
             ensure_dir_exists(os.path.dirname(html_dst))
-            track_method(save, "ue_save_html", writer, show_plot_step)(out_widget)
+            track_method(save, "ue_save_html", writer)(out_widget)
             logger.info("Output written to {}".format(html_dst))
 
             if include_images and ImageLabels.FILENAME in labels.columns:
@@ -472,10 +470,7 @@ def make_umap(
                         shutil.copy2(file, dst)
 
     if writer is not None:
-        if show_plot_step > -1:
-            writer.add_scalar("ue_total_sec", time.time() - start, global_step=show_plot_step)
-        else:
-            writer.add_scalar("ue_total_sec", time.time() - start)
+        writer.add_scalar("ue_total_sec", time.time() - start)
 
     if show_plot:
         for i, runner in enumerate(runners):
@@ -500,10 +495,15 @@ def make_umap(
                     + c
                 )
                 if writer:
-                    if show_plot_step > -1:
-                        writer.add_figure(fig_label, fig, global_step=show_plot_step)
-                    else:
-                        writer.add_figure(fig_label, fig)
+                    # Convert matplotlib figure to numpy array before logging
+                    from io import BytesIO
+                    from PIL import Image
+                    buf = BytesIO()
+                    fig.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+                    buf.seek(0)
+                    img_array = np.array(Image.open(buf))
+                    writer.add_image(fig_label, img_array, dataformats='HWC')
+                    plt.close(fig)
                     logger.debug(f"wrote figure '{fig_label}' to tensorboard")
                 else:
                     plt.show()

@@ -1,4 +1,3 @@
-from fi_misc.global_util import logger
 import os
 import threading
 import time
@@ -6,6 +5,9 @@ from datetime import timedelta
 from functools import wraps
 
 import psutil
+from monai.handlers.tensorboard_handlers import SummaryWriter
+
+from fi_misc.global_util import logger
 
 
 def monitor_gpu(stop_event, interval, action, writer, gpu_index=0):
@@ -42,7 +44,6 @@ def monitor_gpu(stop_event, interval, action, writer, gpu_index=0):
         return
     try:
         handle = nvmlDeviceGetHandleByIndex(gpu_index)
-        i = 0
         while not stop_event.is_set():
             # Memory usage
             mem_info = nvmlDeviceGetMemoryInfo(handle)
@@ -54,12 +55,11 @@ def monitor_gpu(stop_event, interval, action, writer, gpu_index=0):
             gpu_util = utilization.gpu  # GPU utilization percentage
 
             # Log metrics
-            writer.add_scalar(f"{action}_gpu_mem_used_mb", gpu_mem_used, global_step=i)
+            writer.add_scalar(f"{action}_gpu_mem_used_mb", gpu_mem_used)
             writer.add_scalar(
-                f"{action}_gpu_mem_total_mb", gpu_mem_total, global_step=i
+                f"{action}_gpu_mem_total_mb", gpu_mem_total
             )
-            writer.add_scalar(f"{action}_gpu_util_percent", gpu_util, global_step=i)
-            i += 1
+            writer.add_scalar(f"{action}_gpu_util_percent", gpu_util)
 
             time.sleep(interval)
     finally:
@@ -69,18 +69,14 @@ def monitor_gpu(stop_event, interval, action, writer, gpu_index=0):
 def monitor_memory(stop_event, interval, action, writer):
     """Periodically logs memory usage of the current process."""
     process = psutil.Process(os.getpid())
-    i = 0
     while not stop_event.is_set():
         mem_info = process.memory_info()
         mem_used = mem_info.rss / (1024 * 1024)
-        writer.add_scalar(f"{action}_mem_mb", mem_used, global_step=i)
-        i += 1
+        writer.add_scalar(f"{action}_mem_mb", mem_used)
         time.sleep(interval)
 
 
-def track_method(func, action_name, writer, track_gpu=False, i=0):
-    if i == -1:
-        i = 0
+def track_method(func, action_name, writer : SummaryWriter, track_gpu=False):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not writer:
@@ -108,14 +104,14 @@ def track_method(func, action_name, writer, track_gpu=False, i=0):
         result = func(*args, **kwargs)
 
         end = time.time() - start
-        writer.add_scalar(f"{action_name}_sec", end, i)
+        writer.add_scalar(f"{action_name}_sec", end)
 
         elapsed_time = timedelta(seconds=end)
         days = elapsed_time.days
         hours, remainder = divmod(elapsed_time.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         formatted_time = f"{days}d {hours:02}h {minutes:02}m {seconds:02}s"
-        writer.add_text(f"{action_name}_sec_str", formatted_time, i)
+        writer.add_text(f"{action_name}_sec_str", formatted_time)
         stop_event.set()
         memory_tracker.join()
         if track_gpu:

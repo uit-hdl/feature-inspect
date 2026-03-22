@@ -107,7 +107,7 @@ def main():
         raw_values = get_raw_features(filenames)
         writer = init_tb_writer(os.path.join(args.out_dir, "tb_logs_umap"), f"{tb_name}_{i}", extra={})
 
-        n_intervals = get_umap_neighbors_intervals(number_of_images, writer, i)
+        n_intervals = get_umap_neighbors_intervals(number_of_images, writer)
 
         image_urls = [f".{os.sep}" + x for x in filenames]
 

@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from monai.data import DataLoader, Dataset
 from monai.utils import CommonKeys
-from tensorboardX import SummaryWriter
+from monai.handlers.tensorboard_handlers import SummaryWriter
 
 from .data import divide_data, ImageSample
 from .model import LinearProbe, train, evaluate_model, plot_distributions
@@ -82,13 +82,12 @@ def make_lp(
         writer.add_scalar("lp_num_images_test", len(splits["test"]))
 
         class_map_inv = {v: k for k, v in class_map.items()}
-        plot_distributions( [x[CommonKeys.LABEL] for x in dl_train.dataset.data], "lp_train", class_map_inv, writer, step=0, )
+        plot_distributions( [x[CommonKeys.LABEL] for x in dl_train.dataset.data], "lp_train", class_map_inv, writer)
         plot_distributions(
             [x[CommonKeys.LABEL] for x in dl_val.dataset.data],
             "lp_val",
             class_map_inv,
-            writer,
-            step=0,
+            writer
         )
 
     device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")

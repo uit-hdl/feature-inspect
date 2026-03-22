@@ -1,13 +1,13 @@
 import os
-
-from fi_misc.global_util import logger
 from collections import defaultdict
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from PIL import Image
 from fairlearn.metrics import (
     MetricFrame,
     selection_rate,
@@ -29,6 +29,7 @@ from monai.handlers import (
     CheckpointSaver,
     TensorBoardStatsHandler,
 )
+from monai.handlers.tensorboard_handlers import SummaryWriter
 from monai.inferers import SimpleInferer
 from monai.networks import eval_mode
 from monai.transforms import Compose, EnsureTyped
@@ -39,6 +40,7 @@ from tqdm import tqdm
 
 from fi_misc.data import ImageLabels
 from fi_misc.global_util import ensure_dir_exists, dataframe_to_image
+from fi_misc.global_util import logger
 
 
 class LinearProbe(nn.Module):
@@ -120,6 +122,11 @@ def evaluate_model(
     wrong_predictions = defaultdict(list)
     correct_predictions = defaultdict(list)
     class_map_inv = {v: k for k, v in class_map.items()}
+    
+    # Handle case where predictions_out_file is a directory
+    if os.path.isdir(predictions_out_file):
+        predictions_out_file = os.path.join(predictions_out_file, f"predictions_step_{step}.csv")
+    
     with eval_mode(model):
         for item in tqdm(dl_test):
             y = model(item[CommonKeys.IMAGE].to(device))
@@ -170,9 +177,8 @@ def evaluate_model(
     # save gts and predictions to csv
     logger.info(mf.overall)
     if writer:
-        writer.add_scalar("lp_test_acc", mf.overall["accuracy"], global_step=step)
+        writer.add_scalar("lp_test_acc", mf.overall["accuracy"])
 
-    i = 1
     if wrong_predictions:
         if ImageLabels.FILENAME in item:
             grid_size = min(10, min(map(lambda l: len(l), wrong_predictions.values())))
@@ -219,35 +225,35 @@ def evaluate_model(
         for item in li:
             preds.append({"filename": item[0], "predicted_label": item[2], "correct_label": item[1]})
     preds_df = pd.DataFrame(preds)
+    
     if not os.path.exists(os.path.dirname(predictions_out_file)):
         os.makedirs(os.path.dirname(predictions_out_file))
     preds_df.to_csv(predictions_out_file, index=False)
     logger.info(f"Wrote {preds_df} with {len(preds)} rows")
 
     if writer:
-        writer.add_figure("lp_wrong_predictions", fig, global_step=step)
+        writer.add_figure("lp_wrong_predictions", fig)
         df = mf.by_group
         df = df.round(3)
         writer.add_image(
             "lp_fairness_metrics",
             dataframe_to_image(df),
-            global_step=step,
             dataformats="HWC",
         )
     else:
         plt.show()
 
-    plot_results(gt_codes, predictions.tolist(), labels, "test_acc", writer=writer, step=step,)
+    plot_results(gt_codes, predictions.tolist(), labels, "test_acc", writer=writer)
 
-    plot_distributions( [x[CommonKeys.LABEL] for x in dl_test.dataset.data], "test", class_map_inv, writer, step=step,)
+    plot_distributions( [x[CommonKeys.LABEL] for x in dl_test.dataset.data], "test", class_map_inv, writer)
 
     kappa = cohen_kappa_score(predictions, gt_codes)
-    writer.add_scalar("kappa", kappa, global_step=step)
+    writer.add_scalar("kappa", kappa)
 
     return mf.overall["accuracy"], kappa
 
 
-def plot_results(gts, predictions, labels, title, writer=None, step=0):
+def plot_results(gts, predictions, labels, title, writer=None):
     cm = confusion_matrix(gts, predictions, labels=labels)
     correct_classifications = sum([cm[i][i] for i in range(len(labels))])
     wrong_classifications = len(gts) - correct_classifications
@@ -261,16 +267,14 @@ def plot_results(gts, predictions, labels, title, writer=None, step=0):
     # TODO: also write a file called "predictions.csv" with the fileName, groundTruth, and prediction columns
 
     if writer:
-        writer.add_scalar(
-            "lp_" + title, correct_classifications / total, global_step=step
-        )
-        writer.add_figure(f"lp_confusion_matrix_{title}", cmd.figure_, global_step=step)
+        writer.add_scalar("lp_" + title, correct_classifications / total)
+        writer.add_figure(f"lp_confusion_matrix_{title}", cmd.figure_)
     else:
         logger.info(f"lp_{title}: {correct_classifications / total}")
         plt.show()
 
 
-def plot_distributions(data, mode, class_map, writer, step=0):
+def plot_distributions(data, mode, class_map, writer : SummaryWriter = None, step=0):
     count_per_label = pd.Series(data).value_counts()
     # convert the labels back to their original names (from integers)
     count_per_label.index = [class_map[x] for x in count_per_label.index]
@@ -280,3 +284,4 @@ def plot_distributions(data, mode, class_map, writer, step=0):
 
     if writer:
         writer.add_figure(f"lp_label_distribution_{mode}", fig, global_step=step)
+    plt.close(fig)
