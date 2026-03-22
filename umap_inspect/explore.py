@@ -496,17 +496,11 @@ def make_umap(
                 )
                 if writer:
                     # Convert matplotlib figure to numpy array before logging
-                    from io import BytesIO
-                    from PIL import Image
-                    buf = BytesIO()
-                    fig.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-                    buf.seek(0)
-                    img_array = np.array(Image.open(buf))
-                    writer.add_image(fig_label, img_array, dataformats='HWC')
-                    plt.close(fig)
+                    writer.add_figure(fig_label, fig)
                     logger.debug(f"wrote figure '{fig_label}' to tensorboard")
                 else:
                     plt.show()
+                plt.close(fig)
 
     if raw_values is not None:
         umap_plots = [(runner.plot, raw_runner.plot) for (runner, raw_runner) in pairs]
