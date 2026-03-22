@@ -10,7 +10,7 @@ import torch
 
 from monai.apps import get_logger
 from monai.config import IgniteInfo
-from monai.handlers.tensorboard_handlers import SummaryWriterX
+from monai.handlers.tensorboard_handlers import SummaryWriter
 from monai.utils import is_scalar, min_version, optional_import, CommonKeys
 
 Events, _ = optional_import("ignite.engine", IgniteInfo.OPT_IMPORT_VERSION, min_version, "Events")
@@ -50,7 +50,7 @@ class UmapHandler:
 
     def __init__(
             self,
-            summary_writer: SummaryWriter | SummaryWriterX | None = None,
+            summary_writer: SummaryWriter | None = None,
             output_transform: Callable = lambda x: x[0],
             feature_layer_name : str | None = None,
             global_epoch_transform: Callable = lambda x: x,
