@@ -1,31 +1,37 @@
 cff-version: 1.2.0
-message: If you use this software, please cite both the article from preferred-citation and the software itself.
+message: "If you use this software, please cite the associated paper:"
+title: "Feature Inspect"
+type: software
+
 authors:
-  - family-names: Anders Sildnes
-    given-names: Nikita Shvetsov
-  - family-names: Masoud Tafavvoghi
-    given-names: Vi Ngoc-Nha Tran
-  - family-names: Kajsa Møllersen
-    given-names: Lill-Tove Rasmussen Busund
-  - family-names: Thomas K. Kilvær
-    given-names: Lars Ailo Bongo
-title: Open-source framework for detecting bias and overfitting for large pathology images
-version: 1.0.0
-url: https://arxiv.org/abs/2503.01827
-date-released: '2025-03-07'
+  - family-names: Sildnes
+    given-names: Anders
+
 preferred-citation:
+  type: article
+  title: "Open-source framework for detecting bias and overfitting for large pathology images"
   authors:
-    - family-names: Anders Sildnes
-      given-names: Nikita Shvetsov
-    - family-names: Masoud Tafavvoghi
-      given-names: Vi Ngoc-Nha Tran
-    - family-names: Kajsa Møllersen
-      given-names: Lill-Tove Rasmussen Busund
-    - family-names: Thomas K. Kilvær
-      given-names: Lars Ailo Bongo
-  title: Open-source framework for detecting bias and overfitting for large pathology images
-  url: https://arxiv.org/abs/2503.01827
-  type: generic
-  year: '2025'
-  conference: {}
-  publisher: {}
+    - family-names: Sildnes
+      given-names: Anders
+    - family-names: Shvetsov
+      given-names: Nikita
+    - family-names: Tafavvoghi
+      given-names: Masoud
+    - family-names: Tran
+      given-names: Vi Ngoc-Nha
+    - family-names: Møllersen
+      given-names: Kajsa
+    - family-names: Busund
+      given-names: Lill-Tove Rasmussen
+    - family-names: Kilvær
+      given-names: Thomas K
+    - family-names: Bongo
+      given-names: Lars Ailo
+  journal: "PLOS ONE"
+  year: 2026
+  volume: 21
+  issue: 2
+  doi: 10.1371/journal.pone.0341715
+  url: "https://doi.org/10.1371/journal.pone.0341715"
+  publisher:
+      name: "Public Library of Science"
