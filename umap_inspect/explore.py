@@ -382,20 +382,15 @@ def make_umap(
         # FIXME: I don't think we should always 'relativize' images (if there are many of them )
         if include_images:
             image_urls = [
-                f".{os.sep}" + x.lstrip(os.sep) for x in labels[ImageLabels.FILENAME].values.tolist()
-            ]
-            filename_urls = [
-                f".{os.sep}" + x.lstrip(os.sep) for x in labels[ImageLabels.FILENAME].values.tolist()
+                x.lstrip(os.sep) for x in labels[ImageLabels.FILENAME].values.tolist()
             ]
         else:
             image_urls = labels[ImageLabels.FILENAME].values.tolist()
-            filename_urls = labels[ImageLabels.FILENAME].values.tolist()
 
         labels = (
             labels.reset_index(drop=True)
             .assign(
                 **{
-                    ImageLabels.FILENAME: filename_urls,
                     ImageLabels.IMAGE_URL: image_urls,
                 }
             )
