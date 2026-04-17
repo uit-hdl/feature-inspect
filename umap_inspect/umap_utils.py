@@ -97,21 +97,25 @@ def make_plot_slider(
         )
     )
 
+    params_header = Div(
+        text="<p style='margin-top:0;margin-bottom:0'>UMAP parameters:</p>"
+    )
+    controls_row = row(
+        row(umap_dist_slider, min_dist_help_button),
+        row(umap_neighbour_slider, n_neighbors_help_button),
+    )
+    plots_row = row(*m_plots)
+    metrics_row = row(distribution_plot, metrics_table)
+
     return column(
-        column(
-            Div(
-                text="<p style='margin-top: 0px;margin-bottom:0px'>UMAP parameters:</h4>"
-            ),
-            row(
-                row(umap_dist_slider, min_dist_help_button),
-                row(umap_neighbour_slider, n_neighbors_help_button),
-            ),
-        ),
-        column(row(*m_plots), row(distribution_plot, metrics_table)),
+        params_header,
+        controls_row,
+        plots_row,
+        metrics_row,
     )
 
 
-def make_plot_select(plots, titles):
+def make_plot_select(plots, titles, explain_box, citation_box):
     for p in plots[1:]:
         p.visible = False
     select = Select(
@@ -130,8 +134,7 @@ def make_plot_select(plots, titles):
     # Attach the CustomJS callback to the Select widget
     select.js_on_change("value", callback)
 
-    return column(select, row(*plots))
-
+    return column(select, *plots, explain_box, citation_box)
 
 """
 Inspired from the "interactive" method from https://github.com/lmcinnes/umap/blob/d4d4c4aeb96e0d2296b5098d9dc9736de79e4e96/umap/plot.py#L1220
@@ -151,8 +154,21 @@ def make_umap_widget(
     interactive_text_search_alpha_contrast=1.0,
     title=None,
 ):
+    data = data.copy()
+    data.columns = [str(c) for c in data.columns]
+
     tabs = []
     data_sources = []
+    interactive_text_search_columns.append("filename")
+
+    plots = []
+
+    # coords = pd.DataFrame(umap_projection, columns=("x", "y"))
+    # ds = bpl.ColumnDataSource(pd.concat([coords, data], axis=1))
+    # p = bpl.figure(width=width, height=height, title="sanity")
+    # p.scatter(x="x", y="y", source=ds, size=6, color="color", alpha=1.0)
+    # t=Tabs(tabs=[TabPanel(child=p, title=f"scatter")])
+
     for points, prefix in [(umap_projection, ""), (raw_umap_projection, "Raw ")]:
         if points is None:
             continue
@@ -160,11 +176,12 @@ def make_umap_widget(
             raise ValueError("Plotting is currently only implemented for 2D embeddings")
 
         if point_size is None:
-            point_size = 100.0 / np.sqrt(points.shape[0])
+            point_size = max(3, 100.0 / np.sqrt(points.shape[0]))
 
         coordinates = pd.DataFrame(points, columns=("x", "y"))
         # merge coordinates with data
         data_source = bpl.ColumnDataSource(pd.concat([coordinates, data], axis=1))
+
         data_sources.append(data_source)
 
         plot = bpl.figure(
@@ -173,7 +190,6 @@ def make_umap_widget(
             tooltips=tooltips,
             title=title,
         )
-
 
         tt = TapTool()
         tt.callback = OpenURL(url="@image_url")
@@ -188,7 +204,7 @@ def make_umap_widget(
             source=data_source,
             legend_group="label",
             color="color",
-            muted_color="color",
+            #muted_color="color",
             size=point_size,
             alpha="alpha",
         )
@@ -203,6 +219,8 @@ def make_umap_widget(
 
         plot.grid.visible = False
         plot.axis.visible = False
+
+        plots.append(plot)
 
         tab_scatter = TabPanel(child=plot, title=f"{prefix}scatter")
         tab_panes = [tab_scatter]
@@ -241,7 +259,7 @@ def make_umap_widget(
             tab_image = TabPanel(child=plot_img, title=f"{prefix}images")
             tab_panes.append(tab_image)
 
-        tabs.append(Tabs(tabs=tab_panes))
+        tabs.append(Tabs(tabs=tab_panes, sizing_mode="fixed", width=width, height=height+30))
 
     callback_selector = CustomJS(
         args=dict(
@@ -269,7 +287,6 @@ def make_umap_widget(
     )
 
     text_input = TextInput(value="", title="Search:")
-    interactive_text_search_columns.append("filename")
 
     callback_search = CustomJS(
         args=dict(
@@ -317,15 +334,13 @@ def make_umap_widget(
     multibox_input.js_on_change("value", callback_selector)
 
     # # make it possible to hide the legend with a doubletap
-    # def show_hide_legend(legend=plot.legend[0]):
-    #     legend.visible = not legend.visible
+    def show_hide_legend(legend=plots[0].legend[0]):
+        legend.visible = not legend.visible
 
-    callback_legend = CustomJS(args=dict(legend=plot.legend[0]), code="""
+    callback_legend = CustomJS(args=dict(legend=plots[0].legend[0]), code="""
         legend.visible = !legend.visible;
     """)
-    plot.js_on_event(events.DoubleTap, callback_legend)
-
-
+    plots[0].js_on_event(events.DoubleTap, callback_legend)
 
     return row(row(*tabs), text_input, multibox_input)
 
@@ -377,7 +392,8 @@ def make_metrics_table(metrics_data):
 
 def make_datasource(labels, label_key, img_preview_width=0.2, img_preview_height=0.2):
     data = labels.copy() # use integers for indexing
-    data["label"] = labels[[label_key]]
+    data.columns = [str(c) for c in data.columns]
+    data["label"] = labels[label_key]
 
     color_key_cmap = "tab20"
     unique_labels = sorted(data[label_key].unique())
@@ -397,7 +413,7 @@ def make_datasource(labels, label_key, img_preview_width=0.2, img_preview_height
     # data["image_url"] = labels["image_url"]
     tooltips = list(tooltip_dict.items())
 
-    data["alpha"] = 1
+    data["alpha"] = 1.0
     data["line_alpha"] = 0.2
     data["w"] = img_preview_width
     data["h"] = img_preview_height

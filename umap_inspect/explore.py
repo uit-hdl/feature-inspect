@@ -21,7 +21,7 @@ import umap
 import zarr
 import zarr.storage
 from bokeh.io import output_file, save
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from bokeh.models import Div
 from bokeh.plotting import show
 from matplotlib import pyplot as plt
@@ -379,15 +379,26 @@ def make_umap(
             pairs.append((runner, None))
 
     if ImageLabels.FILENAME in labels.columns:
+        # FIXME: I don't think we should always 'relativize' images (if there are many of them )
         if include_images:
             image_urls = [
-                f".{os.sep}" + x for x in labels[[ImageLabels.FILENAME]].values
+                f".{os.sep}" + x.lstrip(os.sep) for x in labels[ImageLabels.FILENAME].values.tolist()
+            ]
+            filename_urls = [
+                f".{os.sep}" + x.lstrip(os.sep) for x in labels[ImageLabels.FILENAME].values.tolist()
             ]
         else:
-            image_urls = list(labels[[ImageLabels.FILENAME]].values)
+            image_urls = labels[ImageLabels.FILENAME].values.tolist()
+            filename_urls = labels[ImageLabels.FILENAME].values.tolist()
 
         labels = (
-            labels.reset_index().assign(image_url=image_urls).reset_index(drop=True)
+            labels.reset_index(drop=True)
+            .assign(
+                **{
+                    ImageLabels.FILENAME: filename_urls,
+                    ImageLabels.IMAGE_URL: image_urls,
+                }
+            )
         )
 
     frames = []
@@ -441,21 +452,21 @@ def make_umap(
                 )
             )
 
-        col = make_plot_select([x[0] for x in frames], [x[1] for x in frames])
         explain_box = Div(text=METRIC_HELPTEXT)
         citation_box = Div(text=METRIC_CITETEXT)
-        out_widget = column(col, column(explain_box, citation_box))
+        out_widget = make_plot_select([x[0] for x in frames], [x[1] for x in frames], explain_box, citation_box)
 
         if out_dir is None:
             logger.info("Showing UMAP plot in browser...")
             track_method(show, "ue_render_html", writer)(out_widget)
         else:
             html_dst = os.path.join(out_dir, f"umap_inspect_{len(values)}.html")
-            i = 1
-            # append a number to the filename before the ".html"
-            while os.path.exists(html_dst):
-                html_dst = os.path.join(out_dir, f"umap_inspect_{len(values)}_{i}.html")
-                i += 1
+            # TODO: re-enable
+            # i = 1
+            # # append a number to the filename before the ".html"
+            # while os.path.exists(html_dst):
+            #     html_dst = os.path.join(out_dir, f"umap_inspect_{len(values)}_{i}.html")
+            #     i += 1
             output_file(html_dst, title="UMAP")
             ensure_dir_exists(os.path.dirname(html_dst))
             track_method(save, "ue_save_html", writer)(out_widget)

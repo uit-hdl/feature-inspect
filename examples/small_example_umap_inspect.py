@@ -44,7 +44,10 @@ def main():
                           cpd=False,
                           do_ss=False,
                           writer=writer,
+                          point_size=30,
+                          include_images=False,
                           render_html=True,
+                          out_dir="./test_example",
                           )#, out_dir="out")
 
         # the temporary image files are deleted upon exiting the code, so we enter a loop here to keep the images around
