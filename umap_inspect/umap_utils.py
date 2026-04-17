@@ -163,12 +163,6 @@ def make_umap_widget(
 
     plots = []
 
-    # coords = pd.DataFrame(umap_projection, columns=("x", "y"))
-    # ds = bpl.ColumnDataSource(pd.concat([coords, data], axis=1))
-    # p = bpl.figure(width=width, height=height, title="sanity")
-    # p.scatter(x="x", y="y", source=ds, size=6, color="color", alpha=1.0)
-    # t=Tabs(tabs=[TabPanel(child=p, title=f"scatter")])
-
     for points, prefix in [(umap_projection, ""), (raw_umap_projection, "Raw ")]:
         if points is None:
             continue
@@ -409,8 +403,8 @@ def make_datasource(labels, label_key, img_preview_width=0.2, img_preview_height
     for col in labels.columns:
         tooltip_dict[col] = "@{" + str(col) + "}"
 
-    # data["filename"] = labels['filename']
-    # data["image_url"] = labels["image_url"]
+    data["filename"] = labels['filename']
+    data["image_url"] = labels["image_url"]
     tooltips = list(tooltip_dict.items())
 
     data["alpha"] = 1.0

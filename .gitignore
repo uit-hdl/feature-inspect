@@ -1,3 +1,4 @@
+test_example/
 out_*
 **/*.zarr
 assets/
